@@ -45,7 +45,7 @@ class TournamentGUI:
         """Create the user interface"""
         # Create notebook for tabs
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill='both', expand=True, padx=10, pady=10)
+        self.notebook.pack(fill='both', expand=True, padx=100, pady=100)
         
         # Tab 1: Setup
         self.setup_frame = ttk.Frame(self.notebook)
