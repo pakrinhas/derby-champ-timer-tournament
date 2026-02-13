@@ -45,7 +45,7 @@ class TournamentGUI:
         """Create the user interface"""
         # Create notebook for tabs
         self.notebook = ttk.Notebook(self.root)
-        self.notebook.pack(fill='both', expand=True, padx=50, pady=50)
+        self.notebook.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Tab 1: Setup
         self.setup_frame = ttk.Frame(self.notebook)
@@ -96,7 +96,7 @@ class TournamentGUI:
         
         add_btn = tk.Button(entry_frame, text="Add Competitor", 
                            command=self.add_competitor,
-                           bg='#3498db', fg='white', font=('Arial', 11, 'bold'),
+                           bg='#3498db', fg='black', font=('Arial', 11, 'bold'),
                            padx=20, pady=5)
         add_btn.grid(row=0, column=2, padx=5)
         
@@ -119,12 +119,12 @@ class TournamentGUI:
         
         remove_btn = tk.Button(button_frame, text="Remove Selected", 
                               command=self.remove_competitor,
-                              bg='#e74c3c', fg='white', font=('Arial', 10))
+                              bg='#e74c3c', fg='black', font=('Arial', 10))
         remove_btn.pack(side='left', padx=5)
         
         done_btn = tk.Button(button_frame, text="Done - Connect Timer →", 
                             command=self.finish_setup,
-                            bg='#27ae60', fg='white', font=('Arial', 12, 'bold'),
+                            bg='#27ae60', fg='black', font=('Arial', 12, 'bold'),
                             padx=30, pady=10)
         done_btn.pack(side='left', padx=5)
         
@@ -147,7 +147,7 @@ class TournamentGUI:
         
         refresh_btn = tk.Button(settings_frame, text="Refresh Ports", 
                                command=self.refresh_ports,
-                               bg='#95a5a6', fg='white', font=('Arial', 10))
+                               bg='#95a5a6', fg='black', font=('Arial', 10))
         refresh_btn.grid(row=0, column=2, padx=5, pady=5)
         
         # Baudrate
@@ -160,7 +160,7 @@ class TournamentGUI:
         # Connect button
         self.connect_btn = tk.Button(self.connection_frame, text="Connect to Timer", 
                                      command=self.connect_timer,
-                                     bg='#3498db', fg='white', font=('Arial', 14, 'bold'),
+                                     bg='#3498db', fg='black', font=('Arial', 14, 'bold'),
                                      padx=40, pady=15)
         self.connect_btn.pack(pady=20)
         
@@ -172,7 +172,7 @@ class TournamentGUI:
         # Next button (disabled until connected)
         self.next_to_race_btn = tk.Button(self.connection_frame, text="Next - Start Racing →", 
                                          command=self.go_to_racing,
-                                         bg='#27ae60', fg='white', font=('Arial', 12, 'bold'),
+                                         bg='#27ae60', fg='black', font=('Arial', 12, 'bold'),
                                          padx=30, pady=10, state='disabled')
         self.next_to_race_btn.pack(pady=20)
         
