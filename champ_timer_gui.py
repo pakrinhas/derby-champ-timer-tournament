@@ -21,6 +21,18 @@ class TournamentGUI:
         self.root = root
         self.root.title("The Champ Timer - Tournament Tracker")
         self.root.geometry("1000x700")
+        self.root.configure(bg="#f3f6fb")
+
+        self.colors = {
+            'bg': '#f3f6fb',
+            'surface': '#ffffff',
+            'primary': '#2563eb',
+            'primary_dark': '#1d4ed8',
+            'success': '#16a34a',
+            'danger': '#dc2626',
+            'muted': '#64748b',
+            'title': '#0f172a'
+        }
         
         # Data structures
         self.serial_port = None
@@ -38,8 +50,65 @@ class TournamentGUI:
         self.standings_file = self.results_dir / f"standings_{timestamp}.csv"
         
         # Setup UI
+        self.setup_styles()
         self.setup_ui()
         self.show_setup_tab()
+
+    def setup_styles(self):
+        """Centralized ttk styling for a cleaner modern look"""
+        style = ttk.Style()
+        style.theme_use('clam')
+
+        style.configure('App.TFrame', background=self.colors['bg'])
+        style.configure('Surface.TFrame', background=self.colors['surface'])
+
+        style.configure('TLabelframe', background=self.colors['surface'],
+                        borderwidth=1, relief='solid')
+        style.configure('TLabelframe.Label', background=self.colors['surface'],
+                        foreground=self.colors['title'], font=('Arial', 11, 'bold'))
+
+        style.configure('TLabel', background=self.colors['surface'],
+                        foreground=self.colors['title'])
+        style.configure('Header.TLabel', background=self.colors['bg'],
+                        foreground=self.colors['title'], font=('Arial', 22, 'bold'))
+        style.configure('SubHeader.TLabel', background=self.colors['bg'],
+                        foreground=self.colors['muted'], font=('Arial', 12))
+
+        style.configure('TNotebook', background=self.colors['bg'], borderwidth=0)
+        style.configure('TNotebook.Tab', font=('Arial', 11, 'bold'), padding=(16, 10))
+        style.map('TNotebook.Tab',
+                  background=[('selected', '#dbeafe'), ('active', '#e5edff')],
+                  foreground=[('selected', self.colors['primary_dark']), ('!selected', '#334155')])
+
+        style.configure('TCombobox', padding=6)
+        style.configure('Treeview.Heading', font=('Arial', 11, 'bold'))
+        style.configure('Treeview', rowheight=28, font=('Arial', 10))
+
+    def make_button(self, parent, text, command, variant='primary', **kwargs):
+        """Create consistently styled tk buttons"""
+        palette = {
+            'primary': self.colors['primary'],
+            'success': self.colors['success'],
+            'danger': self.colors['danger'],
+            'neutral': '#94a3b8',
+            'accent': '#7c3aed'
+        }
+        bg = palette.get(variant, self.colors['primary'])
+
+        return tk.Button(
+            parent,
+            text=text,
+            command=command,
+            bg=bg,
+            fg='white',
+            activebackground=bg,
+            activeforeground='white',
+            relief='flat',
+            bd=0,
+            cursor='hand2',
+            font=('Arial', 11, 'bold'),
+            **kwargs
+        )
         
     def setup_ui(self):
         """Create the user interface"""
@@ -48,22 +117,22 @@ class TournamentGUI:
         self.notebook.pack(fill='both', expand=True, padx=10, pady=10)
         
         # Tab 1: Setup
-        self.setup_frame = ttk.Frame(self.notebook)
+        self.setup_frame = ttk.Frame(self.notebook, style='App.TFrame')
         self.notebook.add(self.setup_frame, text="1. Setup")
         self.create_setup_tab()
         
         # Tab 2: Connection
-        self.connection_frame = ttk.Frame(self.notebook)
+        self.connection_frame = ttk.Frame(self.notebook, style='App.TFrame')
         self.notebook.add(self.connection_frame, text="2. Connect Timer")
         self.create_connection_tab()
         
         # Tab 3: Racing
-        self.racing_frame = ttk.Frame(self.notebook)
+        self.racing_frame = ttk.Frame(self.notebook, style='App.TFrame')
         self.notebook.add(self.racing_frame, text="3. Race")
         self.create_racing_tab()
         
         # Tab 4: Standings
-        self.standings_frame = ttk.Frame(self.notebook)
+        self.standings_frame = ttk.Frame(self.notebook, style='App.TFrame')
         self.notebook.add(self.standings_frame, text="4. Standings")
         self.create_standings_tab()
         
@@ -75,29 +144,27 @@ class TournamentGUI:
     def create_setup_tab(self):
         """Setup tab - add competitors"""
         # Title
-        title = tk.Label(self.setup_frame, text="Competitor Setup", 
-                        font=('Arial', 20, 'bold'), fg='#2c3e50')
+        title = ttk.Label(self.setup_frame, text="Competitor Setup", style='Header.TLabel')
         title.pack(pady=20)
         
         # Instructions
-        instructions = tk.Label(self.setup_frame, 
-                               text="Add all competitors who will be racing today",
-                               font=('Arial', 12))
+        instructions = ttk.Label(self.setup_frame,
+                                 text="Add all competitors who will be racing today",
+                                 style='SubHeader.TLabel')
         instructions.pack(pady=10)
         
         # Competitor entry frame
         entry_frame = ttk.Frame(self.setup_frame)
         entry_frame.pack(pady=20)
         
-        tk.Label(entry_frame, text="Competitor Name:", font=('Arial', 11)).grid(row=0, column=0, padx=5)
+        ttk.Label(entry_frame, text="Competitor Name:", font=('Arial', 11)).grid(row=0, column=0, padx=5)
         self.competitor_entry = ttk.Entry(entry_frame, width=30, font=('Arial', 11))
         self.competitor_entry.grid(row=0, column=1, padx=5)
         self.competitor_entry.bind('<Return>', lambda e: self.add_competitor())
         
-        add_btn = tk.Button(entry_frame, text="Add Competitor", 
-                           command=self.add_competitor,
-                           bg='#3498db', fg='black', font=('Arial', 11, 'bold'),
-                           padx=20, pady=5)
+        add_btn = self.make_button(entry_frame, text="Add Competitor",
+                                   command=self.add_competitor,
+                                   variant='primary', padx=20, pady=7)
         add_btn.grid(row=0, column=2, padx=5)
         
         # Competitor list
@@ -105,7 +172,16 @@ class TournamentGUI:
         list_frame.pack(fill='both', expand=True, padx=20, pady=10)
         
         # Scrolled listbox
-        self.competitor_listbox = tk.Listbox(list_frame, font=('Arial', 11), height=15)
+        self.competitor_listbox = tk.Listbox(
+            list_frame,
+            font=('Arial', 11),
+            height=15,
+            bd=0,
+            highlightthickness=1,
+            highlightbackground='#cbd5e1',
+            selectbackground='#bfdbfe',
+            selectforeground='#0f172a'
+        )
         self.competitor_listbox.pack(side='left', fill='both', expand=True)
         
         scrollbar = ttk.Scrollbar(list_frame, orient='vertical', 
@@ -117,22 +193,19 @@ class TournamentGUI:
         button_frame = ttk.Frame(self.setup_frame)
         button_frame.pack(pady=10)
         
-        remove_btn = tk.Button(button_frame, text="Remove Selected", 
-                              command=self.remove_competitor,
-                              bg='#e74c3c', fg='black', font=('Arial', 10))
+        remove_btn = self.make_button(button_frame, text="Remove Selected",
+                                      command=self.remove_competitor, variant='danger')
         remove_btn.pack(side='left', padx=5)
         
-        done_btn = tk.Button(button_frame, text="Done - Connect Timer →", 
-                            command=self.finish_setup,
-                            bg='#27ae60', fg='black', font=('Arial', 12, 'bold'),
-                            padx=30, pady=10)
+        done_btn = self.make_button(button_frame, text="Done - Connect Timer →",
+                                    command=self.finish_setup, variant='success',
+                                    font=('Arial', 12, 'bold'), padx=30, pady=10)
         done_btn.pack(side='left', padx=5)
         
     def create_connection_tab(self):
         """Connection tab - connect to timer"""
         # Title
-        title = tk.Label(self.connection_frame, text="Connect to Timer", 
-                        font=('Arial', 20, 'bold'), fg='#2c3e50')
+        title = ttk.Label(self.connection_frame, text="Connect to Timer", style='Header.TLabel')
         title.pack(pady=20)
         
         # Connection settings frame
@@ -141,39 +214,40 @@ class TournamentGUI:
         settings_frame.pack(pady=20, padx=20)
         
         # Port selection
-        tk.Label(settings_frame, text="Serial Port:", font=('Arial', 11)).grid(row=0, column=0, sticky='w', pady=5)
+        ttk.Label(settings_frame, text="Serial Port:", font=('Arial', 11)).grid(row=0, column=0, sticky='w', pady=5)
         self.port_combo = ttk.Combobox(settings_frame, width=40, font=('Arial', 11), state='readonly')
         self.port_combo.grid(row=0, column=1, padx=10, pady=5)
         
-        refresh_btn = tk.Button(settings_frame, text="Refresh Ports", 
-                               command=self.refresh_ports,
-                               bg='#95a5a6', fg='black', font=('Arial', 10))
+        refresh_btn = self.make_button(settings_frame, text="Refresh Ports",
+                                       command=self.refresh_ports, variant='neutral')
         refresh_btn.grid(row=0, column=2, padx=5, pady=5)
         
         # Baudrate
-        tk.Label(settings_frame, text="Baud Rate:", font=('Arial', 11)).grid(row=1, column=0, sticky='w', pady=5)
+        ttk.Label(settings_frame, text="Baud Rate:", font=('Arial', 11)).grid(row=1, column=0, sticky='w', pady=5)
         self.baudrate_combo = ttk.Combobox(settings_frame, width=15, font=('Arial', 11), 
                                           values=['9600', '19200', '38400', '115200'], state='readonly')
         self.baudrate_combo.set('9600')
         self.baudrate_combo.grid(row=1, column=1, sticky='w', padx=10, pady=5)
         
         # Connect button
-        self.connect_btn = tk.Button(self.connection_frame, text="Connect to Timer", 
-                                     command=self.connect_timer,
-                                     bg='#3498db', fg='black', font=('Arial', 14, 'bold'),
-                                     padx=40, pady=15)
+        self.connect_btn = self.make_button(self.connection_frame, text="Connect to Timer",
+                                            command=self.connect_timer,
+                                            variant='primary',
+                                            font=('Arial', 14, 'bold'),
+                                            padx=40, pady=15)
         self.connect_btn.pack(pady=20)
         
         # Status label
-        self.connection_status = tk.Label(self.connection_frame, text="Not Connected", 
-                                         font=('Arial', 12), fg='red')
+        self.connection_status = ttk.Label(self.connection_frame, text="Not Connected",
+                                           style='SubHeader.TLabel', foreground='#b91c1c')
         self.connection_status.pack(pady=10)
         
         # Next button (disabled until connected)
-        self.next_to_race_btn = tk.Button(self.connection_frame, text="Next - Start Racing →", 
-                                         command=self.go_to_racing,
-                                         bg='#27ae60', fg='black', font=('Arial', 12, 'bold'),
-                                         padx=30, pady=10, state='disabled')
+        self.next_to_race_btn = self.make_button(self.connection_frame, text="Next - Start Racing →",
+                                                 command=self.go_to_racing,
+                                                 variant='success',
+                                                 font=('Arial', 12, 'bold'),
+                                                 padx=30, pady=10, state='disabled')
         self.next_to_race_btn.pack(pady=20)
         
         # Auto-refresh ports
@@ -185,8 +259,8 @@ class TournamentGUI:
         top_frame = ttk.Frame(self.racing_frame)
         top_frame.pack(fill='x', padx=20, pady=10)
         
-        self.heat_label = tk.Label(top_frame, text="HEAT #1", 
-                                   font=('Arial', 24, 'bold'), fg='#e74c3c')
+        self.heat_label = ttk.Label(top_frame, text="HEAT #1",
+                                    style='Header.TLabel', foreground='#b91c1c')
         self.heat_label.pack()
         
         # Lane assignments frame
@@ -198,24 +272,25 @@ class TournamentGUI:
             lane_frame = ttk.Frame(lanes_frame)
             lane_frame.pack(fill='x', pady=8)
             
-            tk.Label(lane_frame, text=f"Lane {lane}:", font=('Arial', 12, 'bold'), 
-                    width=8).pack(side='left', padx=5)
+            ttk.Label(lane_frame, text=f"Lane {lane}:", font=('Arial', 12, 'bold'),
+                      width=8).pack(side='left', padx=5)
             
             combo = ttk.Combobox(lane_frame, width=30, font=('Arial', 11), state='readonly')
             combo.pack(side='left', padx=5)
             self.lane_combos[lane] = combo
         
         # Auto-assign button
-        auto_btn = tk.Button(self.racing_frame, text="Auto-Assign Next Racers", 
-                           command=self.auto_assign_lanes,
-                           bg='#9b59b6', fg='white', font=('Arial', 11))
+        auto_btn = self.make_button(self.racing_frame, text="Auto-Assign Next Racers",
+                                    command=self.auto_assign_lanes,
+                                    variant='accent')
         auto_btn.pack(pady=10)
         
         # Race button
-        self.race_btn = tk.Button(self.racing_frame, text="🏁 READY TO RACE!", 
-                                 command=self.start_listening,
-                                 bg='#27ae60', fg='white', font=('Arial', 16, 'bold'),
-                                 padx=50, pady=20)
+        self.race_btn = self.make_button(self.racing_frame, text="🏁 READY TO RACE!",
+                                         command=self.start_listening,
+                                         variant='success',
+                                         font=('Arial', 16, 'bold'),
+                                         padx=50, pady=20)
         self.race_btn.pack(pady=20)
         
         # Results display
@@ -229,8 +304,7 @@ class TournamentGUI:
     def create_standings_tab(self):
         """Standings tab - show current rankings"""
         # Title
-        title = tk.Label(self.standings_frame, text="🏆 Tournament Standings", 
-                        font=('Arial', 20, 'bold'), fg='#2c3e50')
+        title = ttk.Label(self.standings_frame, text="🏆 Tournament Standings", style='Header.TLabel')
         title.pack(pady=20)
         
         # Standings table
@@ -264,10 +338,11 @@ class TournamentGUI:
         scrollbar.pack(side='right', fill='y')
         
         # Refresh button
-        refresh_btn = tk.Button(self.standings_frame, text="🔄 Refresh Standings", 
-                               command=self.update_standings_display,
-                               bg='#3498db', fg='white', font=('Arial', 12, 'bold'),
-                               padx=30, pady=10)
+        refresh_btn = self.make_button(self.standings_frame, text="🔄 Refresh Standings",
+                                       command=self.update_standings_display,
+                                       variant='primary',
+                                       font=('Arial', 12, 'bold'),
+                                       padx=30, pady=10)
         refresh_btn.pack(pady=20)
         
     # Setup Tab Methods
@@ -348,8 +423,8 @@ class TournamentGUI:
             if self.serial_port and self.serial_port.is_open:
                 self.serial_port.close()
             self.is_connected = False
-            self.connection_status.config(text="Not Connected", fg='red')
-            self.connect_btn.config(text="Connect to Timer", bg='#3498db')
+            self.connection_status.config(text="Not Connected", foreground='#b91c1c')
+            self.connect_btn.config(text="Connect to Timer", bg=self.colors['primary'])
             self.next_to_race_btn.config(state='disabled')
             return
         
@@ -372,8 +447,8 @@ class TournamentGUI:
             )
             
             self.is_connected = True
-            self.connection_status.config(text=f"✓ Connected to {port_name}", fg='green')
-            self.connect_btn.config(text="Disconnect", bg='#e74c3c')
+            self.connection_status.config(text=f"✓ Connected to {port_name}", foreground='#15803d')
+            self.connect_btn.config(text="Disconnect", bg=self.colors['danger'])
             self.next_to_race_btn.config(state='normal')
             
             messagebox.showinfo("Connected", f"Successfully connected to {port_name}")
